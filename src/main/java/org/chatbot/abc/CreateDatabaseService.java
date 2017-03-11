@@ -65,7 +65,7 @@ public class CreateDatabaseService {
 	private void createDatabase(Path path) throws IOException {
 		// add key string;
 		repository.saveAndFlush(new WordVector()
-				.withId(0L)
+				.withId(1L)// 0
 				.withWord("<END>")
 				.withVector(new double[100]));
 

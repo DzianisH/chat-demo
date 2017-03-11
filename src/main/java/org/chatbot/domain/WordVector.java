@@ -1,12 +1,9 @@
 package org.chatbot.domain;
 
-import javax.annotation.MatchesPattern;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.Table;
-import java.util.Objects;
 
 /**
  * Created by DzianisH on 11.03.2017.
