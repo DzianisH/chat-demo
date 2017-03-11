@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost/chatdemo?useLegacyDatetimeCode=false&serverTimezone=Europe/Minsk&useSSL=false
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+
+---
+
+chatdemom:
+  dictionary-path: d:/Projects/idea/chat-bot/src/main/big-files/glove.840B.300d.txt
+  

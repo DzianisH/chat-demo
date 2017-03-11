@@ -1,0 +1,5 @@
+*.iml
+.idea/*
+src/main/big-files/*
+target
+*.class
