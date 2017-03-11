@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 /**
  * Created by DzianisH on 07.03.2017.
  */
+@Deprecated
 public class ChatParser {
 
 	public static void main(String[] args) throws IOException {
