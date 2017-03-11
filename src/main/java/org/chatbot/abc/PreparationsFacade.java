@@ -12,8 +12,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Created by DzianisH on 11.03.2017.
@@ -27,9 +29,9 @@ public class PreparationsFacade {
 	@Value("${chatdemom.dictionary-path}")
 	private String dictionaryPath;
 
-	private int wordVectorsChunkSize = 16384;
-	private int maxWordLength = 32;
-	private List<WordVector> wordVectors = new LinkedList<>();
+	final private int wordVectorsChunkSize = 32_768;
+	final private int maxWordLength = 32;
+	final private List<WordVector> wordVectors = new LinkedList<>();
 
 	private long processedItems = 0;
 	private long startTime;
@@ -53,18 +55,22 @@ public class PreparationsFacade {
 
 		double duration = (System.currentTimeMillis() - startTime) / 1000.0;
 		System.out.println("Process items: " + processedItems);
-		System.out.println("It took: " + duration);
+		System.out.println("It took: " + duration + " seconds");
+
+		System.out.println("\n\nPlease, execute manually:\n\tcreate INDEX word_index ON word_vector (word);\n\n");
 	}
 
 	private void performPreparations(Path path) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
-		final long[] x = {0};
 		reader.lines()
 				.map(service::parseToWordVector)
-				.peek(w -> x[0]++)
 				.filter(wv -> wv.getWord().length() < maxWordLength)
 				.forEach(this::puckAndSaveToRepo);
 
+		if(wordVectors.size() > 0) {
+			repository.save(wordVectors);
+			processedItems += wordVectors.size();
+		}
 		repository.flush();
 	}
 
@@ -79,20 +85,20 @@ public class PreparationsFacade {
 
 	private void printProgress(long processedItems){
 		this.processedItems += processedItems;
-		// total number of words: 2179072 (2196017)
-		double progress = this.processedItems / 2179.072;
+		// total number of words: 400 000
+		double progress = this.processedItems / 400.0;
 		long duration = System.currentTimeMillis() - startTime;
 		double eta = ((duration / progress) * (1000.0 - progress)) / 1000.0;
 		double speed = progress * 1000.0 / duration;
 
 		System.out.print( new StringBuilder()
-				.append("Progress: ")
+				.append("Progress: \t")
 				.append(progress)
 				.append(" ‰\n")
-				.append("ETA: ")
+				.append("ETA:      \t")
 				.append(eta)
 				.append(" seconds\n")
-				.append("Speed ")
+				.append("Speed:    \t")
 				.append(speed)
 				.append(" ‰/second\n\n")
 		);

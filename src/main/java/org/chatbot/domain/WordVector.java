@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.Objects;
 
 /**
  * Created by DzianisH on 11.03.2017.
@@ -19,7 +20,7 @@ public class WordVector {
 	@Column(length = 31, nullable = false)
 	private String word;
 
-	@Column(length = 300, nullable = false)
+	@Column(length = 8*100, nullable = false)
 	private double vector[];
 
 
@@ -62,6 +63,7 @@ public class WordVector {
 		return this;
 	}
 
+	@Override
 	public String toString(){
 		return id + " " + word + " " + vector.length;
 	}

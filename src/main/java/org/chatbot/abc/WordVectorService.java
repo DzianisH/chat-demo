@@ -18,7 +18,21 @@ public class WordVectorService {
 		}
 
 		return new WordVector()
-				.withWord(chunks[0])
+				.withWord(parseStringToSql(chunks[0]))
 				.withVector(vector);
+	}
+
+	private String parseStringToSql(String str){
+		str = str.trim();
+		StringBuilder sb = new StringBuilder(str.length());
+
+		for (int i = 0; i < str.length(); ++i){
+			char ch = str.charAt(i);
+			if(ch == '\\' || ch == '\'' || ch == '"' || ch == '/'){
+				sb.append('\\');
+			}
+			sb.append(ch);
+		}
+		return sb.toString();
 	}
 }

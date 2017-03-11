@@ -11,5 +11,5 @@ spring:
 ---
 
 chatdemom:
-  dictionary-path: d:/Projects/idea/chat-bot/src/main/big-files/glove.840B.300d.txt
+  dictionary-path: d:/Projects/idea/chat-bot/src/main/big-files/glove.6B.100d.txt
   
