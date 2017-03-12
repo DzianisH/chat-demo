@@ -20,6 +20,16 @@ public class WordVector {
 	@Column(length = 8*100, nullable = false)
 	private double vector[];
 
+	public WordVector plus(WordVector vw){
+		double vec[] = new double[vector.length];
+		for (int i = 0; i < vec.length; ++i){
+			vec[i] = vector[i] + vw.vector[i];
+		}
+		return new WordVector()
+				.withWord(word + vw.word)
+				.withVector(vec);
+	}
+
 
 	public String getWord() {
 		return word;

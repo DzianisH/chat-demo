@@ -2,6 +2,7 @@ package org.chatbot.abc;
 
 import org.chatbot.domain.WordVector;
 import org.chatbot.repository.WordVectorRepository;
+import org.chatbot.sevice.WordVectorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class CreateDatabaseService {
 	private final WordVectorService service;
 	private final WordVectorRepository repository;
 
-	@Value("${chatdemom.dictionary-path}")
+	@Value("${chatdemo.dictionary-path}")
 	private String dictionaryPath;
 
 	final private int wordVectorsChunkSize = 32_768;

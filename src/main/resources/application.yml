@@ -10,8 +10,8 @@ spring:
 
 ---
 
-chatdemom:
+chatdemo:
   dictionary-path: d:/Projects/idea/chat-bot/src/main/big-files/glove.6B.100d.txt
-  dialogs-path: d:/Projects/idea/chat-bot/src/main/resources/dialogs.txt
-  dataset-path: d:/Projects/idea/chat-bot/src/main/resources/dataset.txt
+  movie-lines: d:/Projects/idea/chat-bot/src/main/resources/movie_lines.txt
+  movie-conversations: d:/Projects/idea/chat-bot/src/main/resources/movie_conversations.txt
   
