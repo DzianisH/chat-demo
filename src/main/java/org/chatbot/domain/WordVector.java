@@ -10,19 +10,19 @@ import javax.persistence.Id;
  */
 @Entity
 public class WordVector {
-	@Id @GeneratedValue
+	@Id	@GeneratedValue
 	@Column(nullable = false, unique = true)
 	private Long id;
 
 	@Column(length = 31, nullable = false)
 	private String word;
 
-	@Column(length = 8*100, nullable = false)
+	@Column(length = 8 * 100, nullable = false)
 	private double vector[];
 
-	public WordVector plus(WordVector vw){
+	public WordVector plus(WordVector vw) {
 		double vec[] = new double[vector.length];
-		for (int i = 0; i < vec.length; ++i){
+		for (int i = 0; i < vec.length; ++i) {
 			vec[i] = vector[i] + vw.vector[i];
 		}
 		return new WordVector()
@@ -55,23 +55,37 @@ public class WordVector {
 		this.id = id;
 	}
 
-	public WordVector withId(Long id){
+	public WordVector withId(Long id) {
 		setId(id);
 		return this;
 	}
 
-	public WordVector withWord(String word){
+	public WordVector withWord(String word) {
 		setWord(word);
 		return this;
 	}
 
-	public WordVector withVector(double[] vector){
+	public WordVector withVector(double[] vector) {
 		setVector(vector);
 		return this;
 	}
 
 	@Override
-	public String toString(){
+	public int hashCode() {
+		return id.intValue();
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		return object instanceof WordVector && equals((WordVector) object);
+	}
+
+	public boolean equals(WordVector wordVector) {
+		return id.equals(wordVector.getId());
+	}
+
+	@Override
+	public String toString() {
 		return id + " " + word + " " + vector.length;
 	}
 }

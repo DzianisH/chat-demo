@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.chatbot.sevice.WordVectorService.END;
 
 
@@ -39,7 +40,7 @@ public class CreateDatasetService {
 
 	final private static String DELIMITER = " +++$+++ ";
 
-	public void createDataset(){
+	public void createDataset() {
 		Path conversations = Paths.get(moviceConversationsPath);
 		Path lines = Paths.get(movieLinesPath);
 		try {
@@ -49,26 +50,32 @@ public class CreateDatasetService {
 		}
 	}
 
-	private void createDataset(Path conversationsPath, Path movieLinesPath, File inputs, File labels) throws IOException{
+	private void createDataset(Path conversationsPath, Path movieLinesPath, File inputs, File labels) throws IOException {
 		Map<Integer, String> linesMap = Files.lines(movieLinesPath)
 				.map(Phrase::new)
 				.collect(Collectors.toMap(Phrase::getLine, Phrase::getText));
 
 		Files.lines(conversationsPath)
 				.flatMap(line -> extractPairs(line, linesMap).stream())
-				.peek(this::tokenizeSentences)
 				.map(this::createTrainData)
-				.forEach(x -> {});
-
+				.forEach(System.out::println);
 	}
 
-	private LabeledTrainData createTrainData(QaPair pair){
+	private LabeledTrainData createTrainData(QaPair pair) {
 		return new LabeledTrainData()
-				.withInput(createInputVector(pair.getQuestion()))
-				.withLabels(convertToWordVectors(pair.getAnswer()));
+				.withInput(createInputVectors(pair.getQuestion()))
+				.withLabels(createOutputVectors(pair.getAnswer()));
 	}
 
-	private List<WordVector> createInputVector(String question) {
+	private List<WordVector> createOutputVectors(String pair) {
+		List<WordVector> list = convertToWordVectors(pair).stream()
+				.filter(service::isNotEnd)
+				.collect(toList());
+		list.add(END);
+		return list;
+	}
+
+	private List<WordVector> createInputVectors(String question) {
 		List<WordVector> vectors = convertToWordVectors(question);
 
 		int len = INPUT_HEIGHT - 1;
@@ -77,7 +84,7 @@ public class CreateDatasetService {
 		List<WordVector> inputs = new ArrayList<>(vectors.subList(0, length));
 		List<WordVector> tail = new ArrayList<>(vectors.subList(length, vectors.size()));
 
-		while (inputs.size() < len){
+		while (inputs.size() < len) {
 			inputs.add(END);
 		}
 
@@ -95,7 +102,7 @@ public class CreateDatasetService {
 		return Arrays.stream(answer.split("[ ]+"))
 				.filter(word -> !word.isEmpty())
 				.map(service::getWordVectorByWord)
-				.collect(Collectors.toList());
+				.collect(toList());
 	}
 
 	private void tokenizeSentences(QaPair qaPair) {
@@ -103,22 +110,18 @@ public class CreateDatasetService {
 		qaPair.question = tokenizeSentence(qaPair.question);
 	}
 
-	private String tokenizeSentence(String sentence){
-		StringBuilder tokenized = new StringBuilder();
+	private String tokenizeSentence(String sentence) {
+		StringBuilder tokenizedSentence = new StringBuilder();
 
 		Arrays.stream(sentence.split("[ ]+"))
 				.filter(word -> !word.isEmpty())
-				.forEach(word -> {
-					service.createTokens(word)
-							.forEach(token -> {
-								tokenized.append(token).append(" ");
-							});
-				});
+				.flatMap(word -> service.createTokens(word).stream())
+				.forEach(token -> tokenizedSentence.append(token).append(" "));
 
-		return tokenized.toString();
+		return tokenizedSentence.toString();
 	}
 
-	private List<QaPair> extractPairs(String conversation, Map<Integer, String> linesMap){
+	private List<QaPair> extractPairs(String conversation, Map<Integer, String> linesMap) {
 		int index = conversation.lastIndexOf(DELIMITER);
 		conversation = conversation.substring(index + DELIMITER.length());
 		conversation = conversation.replaceAll("[L'\\[\\],]+", "");
@@ -129,10 +132,11 @@ public class CreateDatasetService {
 		int conversationLength = senseLines.length & ~1;
 
 		List<QaPair> pairs = new ArrayList<>();
-		for (int i = 0; i < conversationLength; i += 2){
+		for (int i = 0; i < conversationLength; i += 2) {
 			QaPair pair = new QaPair();
 			pair.question = linesMap.get(Integer.valueOf(senseLines[i]));
 			pair.answer = linesMap.get(Integer.valueOf(senseLines[i + 1]));
+			tokenizeSentences(pair);
 			pairs.add(pair);
 		}
 		return pairs;
@@ -159,7 +163,7 @@ public class CreateDatasetService {
 		Integer line;
 		String text;
 
-		Phrase(String str){
+		Phrase(String str) {
 			int i = str.lastIndexOf(DELIMITER);
 			text = str.substring(i + DELIMITER.length());
 
@@ -168,11 +172,11 @@ public class CreateDatasetService {
 			line = Integer.parseInt(str);
 		}
 
-		Integer getLine(){
+		Integer getLine() {
 			return line;
 		}
 
-		String getText(){
+		String getText() {
 			return text;
 		}
 	}

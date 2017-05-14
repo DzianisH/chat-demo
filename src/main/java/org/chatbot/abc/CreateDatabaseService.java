@@ -20,8 +20,10 @@ import java.util.List;
  */
 @Service
 public class CreateDatabaseService {
-	private final WordVectorService service;
-	private final WordVectorRepository repository;
+	@Autowired
+	private WordVectorService service;
+	@Autowired
+	private WordVectorRepository repository;
 
 	@Value("${chatdemo.dictionary-path}")
 	private String dictionaryPath;
@@ -32,12 +34,6 @@ public class CreateDatabaseService {
 
 	private long processedItems = 0;
 	private long startTime;
-
-	@Autowired
-	public CreateDatabaseService(WordVectorService wordVectorService, WordVectorRepository repository) {
-		this.service = wordVectorService;
-		this.repository = repository;
-	}
 
 	public void createDatabase() {
 		Path path = Paths.get(dictionaryPath);
@@ -76,7 +72,7 @@ public class CreateDatabaseService {
 				.filter(wv -> wv.getWord().length() < maxWordLength)
 				.forEach(this::puckAndSaveToRepo);
 
-		if(wordVectors.size() > 0) {
+		if (wordVectors.size() > 0) {
 			repository.save(wordVectors);
 			processedItems += wordVectors.size();
 		}
@@ -86,14 +82,14 @@ public class CreateDatabaseService {
 
 	private void puckAndSaveToRepo(WordVector wordVector) {
 		wordVectors.add(wordVector);
-		if(wordVectors.size() >= wordVectorsChunkSize){
+		if (wordVectors.size() >= wordVectorsChunkSize) {
 			repository.save(wordVectors);
 			printProgress(wordVectors.size());
 			wordVectors.clear();
 		}
 	}
 
-	private void printProgress(long processedItems){
+	private void printProgress(long processedItems) {
 		this.processedItems += processedItems;
 		// total number of words: 400 000
 		double progress = this.processedItems / 400.0;
@@ -101,7 +97,7 @@ public class CreateDatabaseService {
 		double eta = ((duration / progress) * (1000.0 - progress)) / 1000.0;
 		double speed = progress * 1000.0 / duration;
 
-		System.out.print( new StringBuilder()
+		System.out.print(new StringBuilder()
 				.append("Progress: \t")
 				.append(progress)
 				.append(" ‰\n")

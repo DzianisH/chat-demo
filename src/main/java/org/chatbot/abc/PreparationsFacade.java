@@ -17,7 +17,7 @@ public class PreparationsFacade {
 	private CreateDatabaseService databaseService;
 
 	@PostConstruct
-	public void preformPreparations(){
+	public void preformPreparations() {
 		System.out.println("Create database...");
 		databaseService.createDatabase();
 
