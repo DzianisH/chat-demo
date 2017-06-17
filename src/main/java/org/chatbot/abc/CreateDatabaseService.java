@@ -37,7 +37,7 @@ public class CreateDatabaseService {
 		Path path = Paths.get(dictionaryPath);
 
 		try {
-			etaPrinter = new ProcessETAPrinter(400);
+			etaPrinter = new ProcessETAPrinter(400_000);
 			createDatabase(path);
 		} catch (IOException e) {
 			e.printStackTrace();
