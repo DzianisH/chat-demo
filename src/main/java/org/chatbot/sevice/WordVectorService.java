@@ -18,6 +18,9 @@ import static java.util.Collections.singletonList;
 @Service
 public class WordVectorService {
 	@Autowired
+	private WordVectorCacheService cacheService;
+
+	@Autowired
 	private WordVectorRepository repository;
 
 	public static WordVector END;
@@ -44,9 +47,13 @@ public class WordVectorService {
 	}
 
 	private WordVector getWordVectorByWord111(String word) {
-		List<WordVector> vectors = repository.findAllByWord(word);
+		List<WordVector> vectors = cacheService.findAllByWord(word);
+		if(vectors == null) {
+			vectors = repository.findAllByWord(word);
+			cacheService.putPair(word, vectors);
+		}
 		if (vectors.size() == 0) {
-			return convertToWordVectorFromSubWord(word);
+			return END;
 		}
 
 		WordVector vector = vectors.stream()
@@ -54,8 +61,9 @@ public class WordVectorService {
 				.findAny()
 				.orElse(null);
 		if (vector == null) {
+			final String wordLowCase = word.toLowerCase();
 			vector = vectors.stream()
-					.filter(wv -> word.toLowerCase().equals(wv.getWord().toLowerCase()))
+					.filter(wv -> wordLowCase.equals(wv.getWord().toLowerCase()))
 					.findAny()
 					.orElse(null);
 		}
@@ -68,7 +76,7 @@ public class WordVectorService {
 
 
 	public WordVector parseToWordVector(String source) {
-		String chunks[] = source.split(" ");
+		String chunks[] = source.split("\\s");
 		double vector[] = new double[chunks.length - 1];
 
 		for (int i = 0; i < vector.length; ++i) {
@@ -85,6 +93,7 @@ public class WordVectorService {
 			return singletonList(word);
 		}
 		final String punctuations = "!?,.\"':-/`\\@#$%^;&*(){}[]<>+~—|";
+		final String punctuations1 = "!?,.\":-/`\\@#$%^;&*(){}[]<>+~—|";
 		String tail = String.valueOf(word.charAt(word.length() - 1));
 		if (punctuations.contains(tail)) {
 			List<String> tokens = new ArrayList<>();
@@ -100,6 +109,25 @@ public class WordVectorService {
 			return tokens;
 		}
 
+		int x = word.indexOf("...");
+		if(x != -1){
+			List<String> tokens = new ArrayList<>();
+			tokens.addAll(createTokens(word.substring(0, x)));
+			tokens.add("...");
+			tokens.addAll(createTokens(word.substring(x + 3)));
+			return tokens;
+		}
+
+		for (char ch : punctuations1.toCharArray()) {
+			x = word.indexOf(ch);
+			if(x != -1){
+				List<String> tokens = new ArrayList<>();
+				tokens.addAll(createTokens(word.substring(0, x)));
+				tokens.add(String.valueOf(ch));
+				tokens.addAll(createTokens(word.substring(x + 1)));
+				return tokens;
+			}
+		}
 
 		String wordRoot = word.substring(0, word.length() - 2);
 
@@ -128,33 +156,17 @@ public class WordVectorService {
 		} else if (word.endsWith("'ll")) {
 			return asList(wordRoot, "will");
 		}
+
+		x = word.indexOf('\'');
+		if(x != -1){
+			List<String> tokens = new ArrayList<>();
+			tokens.addAll(createTokens(word.substring(0, x)));
+			tokens.add(String.valueOf('\''));
+			tokens.addAll(createTokens(word.substring(x + 1)));
+			return tokens;
+		}
+
 		return singletonList(word);
-	}
-
-	private WordVector convertToWordVectorFromSubWord(String word) {
-		int i = word.lastIndexOf("n't");
-		if (i != -1) {
-			String prefix = word.substring(0, i + 1);
-			WordVector vector = getWordVectorByWord111(prefix + "ot");// append not
-			if (vector == END) {
-				vector = getWordVectorByWord111(prefix + "not");// for double n, like cannot
-			}
-			if (vector == END) {
-				vector = getWordVectorByWord111(prefix.substring(0, prefix.length() - 1));
-				if (vector == END) {
-					vector = getWordVectorByWord111(prefix);// for double n, like cannot
-				}
-				vector = vector.plus(NOT);
-			}
-			return vector;
-		}
-
-		i = word.lastIndexOf("'");
-		if (i != -1) {
-			return getWordVectorByWord111(word.substring(0, i));
-		}
-
-		return END;
 	}
 
 	public boolean isEnd(WordVector wordVector) {

@@ -31,23 +31,19 @@ public class CreateDatabaseService {
 	final private int wordVectorsChunkSize = 32_768;
 	final private int maxWordLength = 32;
 	final private List<WordVector> wordVectors = new LinkedList<>();
-
-	private long processedItems = 0;
-	private long startTime;
+	private ProcessETAPrinter etaPrinter;
 
 	public void createDatabase() {
 		Path path = Paths.get(dictionaryPath);
 
 		try {
-			startTime = System.currentTimeMillis();
+			etaPrinter = new ProcessETAPrinter(400);
 			createDatabase(path);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		double duration = (System.currentTimeMillis() - startTime) / 1000.0;
-		System.out.println("Process items: " + processedItems);
-		System.out.println("It took: " + duration + " seconds");
+		etaPrinter.printResultProgress();
 
 		System.out.println("\n\nPlease, execute manually:\n\tcreate INDEX word_index ON word_vector (word);\n\n");
 
@@ -74,7 +70,7 @@ public class CreateDatabaseService {
 
 		if (wordVectors.size() > 0) {
 			repository.save(wordVectors);
-			processedItems += wordVectors.size();
+			etaPrinter.printProgress(wordVectors.size());
 		}
 
 		repository.flush();
@@ -84,29 +80,8 @@ public class CreateDatabaseService {
 		wordVectors.add(wordVector);
 		if (wordVectors.size() >= wordVectorsChunkSize) {
 			repository.save(wordVectors);
-			printProgress(wordVectors.size());
+			etaPrinter.printProgress(wordVectors.size());
 			wordVectors.clear();
 		}
-	}
-
-	private void printProgress(long processedItems) {
-		this.processedItems += processedItems;
-		// total number of words: 400 000
-		double progress = this.processedItems / 400.0;
-		long duration = System.currentTimeMillis() - startTime;
-		double eta = ((duration / progress) * (1000.0 - progress)) / 1000.0;
-		double speed = progress * 1000.0 / duration;
-
-		System.out.print(new StringBuilder()
-				.append("Progress: \t")
-				.append(progress)
-				.append(" ‰\n")
-				.append("ETA:      \t")
-				.append(eta)
-				.append(" seconds\n")
-				.append("Speed:    \t")
-				.append(speed)
-				.append(" ‰/second\n\n")
-		);
 	}
 }

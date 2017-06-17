@@ -43,10 +43,13 @@ public class CreateDatasetService {
 
 	final private static String DELIMITER = " +++$+++ ";
 
+	private ProcessETAPrinter etaPrinter;
+
 	public void createDataSet() {
 		Path conversations = Paths.get(moviceConversationsPath);
 		Path lines = Paths.get(movieLinesPath);
 		try {
+			etaPrinter = new ProcessETAPrinter(138_134);
 			createDataSet(conversations, lines, null, null);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -58,10 +61,17 @@ public class CreateDatasetService {
 				.map(Phrase::new)
 				.collect(toMap(Phrase::getLine, Phrase::getText));
 
+		final int[] i = {0};
 		Files.lines(conversationsPath)
 				.flatMap(line -> extractPairs(line, linesMap).stream())
 				.map(this::createTrainData)
-				.forEach(System.out::println);
+				.forEach(k -> {
+					i[0]++;
+					if((i[0] & 511) == 0){
+						etaPrinter.printProgress(512);
+					}
+				});
+		etaPrinter.printResultProgress();
 	}
 
 	private LabeledTrainData createTrainData(QAPair pair) {
@@ -125,7 +135,7 @@ public class CreateDatasetService {
 		conversation = conversation.substring(index + DELIMITER.length());
 		conversation = conversation.replaceAll("[L'\\[\\],]+", "");
 
-		String[] senseLines = conversation.split(" ");
+		String[] senseLines = conversation.split("\\s");
 
 		// take only even number of sentences;
 		int conversationLength = senseLines.length & ~1;
@@ -167,7 +177,7 @@ public class CreateDatasetService {
 			text = str.substring(i + DELIMITER.length());
 
 			str = str.substring(0, i);
-			str = str.split(" ")[0].substring(1);
+			str = str.split("\\s")[0].substring(1);
 			line = Integer.parseInt(str);
 		}
 
