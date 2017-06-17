@@ -22,6 +22,6 @@ public class PreparationsFacade {
 		databaseService.createDatabase();
 
 		System.out.println("Create dataset...");
-		datasetService.createDataset();
+		datasetService.createDataSet();
 	}
 }
